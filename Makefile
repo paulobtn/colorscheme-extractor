@@ -30,8 +30,6 @@ $(BIN_DIR)/$(TARGET_EXEC): $(OBJ)
 
 print-%  : ; @echo $* = $($*)
 
-.PHONY: clean test all
-
 clean:
 	rm -rf $(BUILD_DIR)/
 	rm -rf $(BIN_DIR)
