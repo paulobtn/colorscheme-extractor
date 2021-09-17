@@ -44,7 +44,7 @@ int main(int argc, char *argv[]){
         printf("Loaded image %s\n", img_name);
         printf("width:    \t%dpx\n", width);
         printf("height:   \t%dpx\n", height);
-        printf("channels: \t%dpx\n", channels);
+        printf("channels: \t%d\n", channels);
     }
 
     if(dump_colors){
@@ -59,16 +59,16 @@ int main(int argc, char *argv[]){
         printf("Dump colors from image %s\n", img_name);
     }
 
+    if(create_colors){
+      printf("Create colorscheme from image %s\n", img_name);
+    }
+
     if(show_version){
       printf("Show version\n");
     }
 
     if(show_help){
       printf("Show help\n");
-    }
-
-    if(create_colors){
-      printf("Create colorscheme from image %s\n", img_name);
     }
     
     if(img != NULL){
