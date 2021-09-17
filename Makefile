@@ -2,7 +2,6 @@ TARGET_EXEC ?= extractor
 
 IDIR ?= ./include
 BUILD_DIR=./build
-BIN_DIR=./bin
 SRC_DIR ?= ./src
 
 SRCS := $(shell find $(SRC_DIR) -name *.c)
@@ -20,16 +19,15 @@ $(2):$(1) $(HEADERS)
 	$(CC) -c -o $$@ $$< $(CFLAGS)
 endef
 
-all: $(OBJS) $(BIN_DIR)/$(TARGET_EXEC)
+all: $(OBJS) $(TARGET_EXEC)
 
 $(foreach s, $(SRCS), $(eval $(call AddRule, $s, $(filter %$(basename $(notdir $s)).o,$(OBJS)) ) ) )
 
-$(BIN_DIR)/$(TARGET_EXEC): $(OBJ)
-	@mkdir -p $(BIN_DIR)
+$(TARGET_EXEC): $(OBJ)
 	$(CC) $(OBJS) -o $@ $(CFLAGS) $(LIBS)
 
 print-%  : ; @echo $* = $($*)
 
 clean:
 	rm -rf $(BUILD_DIR)/
-	rm -rf $(BIN_DIR)
+	rm -f $(TARGET_EXEC)
