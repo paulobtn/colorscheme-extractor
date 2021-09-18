@@ -39,6 +39,7 @@ int main(int argc, char *argv[]){
     
     Image* img = NULL;
     
+    //parse command line input
     if(parse_cmd_input(argc, argv) != CORE_OK){
         return 1;
     }
@@ -54,17 +55,9 @@ int main(int argc, char *argv[]){
     //dump colors in rgb or hex
     if(cmd_args.dump_colors){
         
-        if(img == NULL ){
-            fprintf(stderr, "Provide an image input\n");
-            fprintf(stderr, "Usage: %s [-vh]\n", argv[0]);
-            fprintf(stderr, "       %s [file...] [-options]\n", argv[0]);
-            return 1;
-        }
-
         if(dump_colors(img, cmd_args.print_hex) != CORE_OK){
             return 1;
         }
-
     }
 
     if(cmd_args.create_colors){
@@ -137,7 +130,7 @@ int parse_cmd_input( int argc, char** argv){
 int dump_colors(Image* img_p, int hex){
     
     if(img_p == NULL){
-        fprintf(stderr, "Error in dumping the image\n");
+        fprintf(stderr, "Provide an image input\n");
         return CORE_ERROR;
     }
 
