@@ -24,31 +24,34 @@ typedef struct {
     uint8_t *data;
 } Image;
 
-int image_load(Image *img, unsigned char *img_name){
+int image_load(Image **img_p, unsigned char *img_name){
+
+    *img_p = malloc(sizeof(Image));
     
-    img->data = stbi_load(img_name,
-                          &(img->width),
-                          &(img->height),
-                          &(img->channels),
+    (*img_p)->data = stbi_load(img_name,
+                          &((*img_p)->width),
+                          &((*img_p)->height),
+                          &((*img_p)->channels),
                           0);
-    if(img->data == NULL){
+    if((*img_p)->data == NULL){
         fprintf(stderr, "Error in loading the image\n");
         return F_ERROR; 
     }
 
-    img->size = (img->width)*(img->height)*(img->channels);
+    (*img_p)->size = ((*img_p)->width) * ((*img_p)->height) * ((*img_p)->channels);
 
     return F_OK;
 }
 
-void image_free(Image *img){
+void image_free(Image *img_p){
 
-    if(img == NULL){
+    if(img_p == NULL){
         return;
     }
+    if(img_p->data != NULL)
+        stbi_image_free(img_p->data);
 
-    if(img->data != NULL)
-        stbi_image_free(img->data);
+    free(img_p);
 }
 
 /* cmd input variables:
@@ -74,9 +77,29 @@ struct Args cmd_args = {
     .img_name          = NULL
 };
 
+int dump_colors(Image* img_p, int hex){
+    
+    if(img_p == NULL){
+        fprintf(stderr, "Error in dumping the image\n");
+        return F_ERROR;
+    }
+
+
+    for (unsigned char *p = img_p->data ; p != img_p->data + img_p->size; p+= img_p->channels){
+        if(hex){
+            printf("#%02x%02x%02x\n", *p, *(p+1), *(p+2));
+        } else{
+            printf("%d\t%d\t%d\n", *p, *(p+1), *(p+2));
+        }
+    }
+
+    return F_OK;
+
+}
+
 int main(int argc, char *argv[]){
     
-    Image img;
+    Image* img = NULL;
     
     if(parse_cmd_input(argc, argv) != F_OK){
         return 1;
@@ -84,6 +107,7 @@ int main(int argc, char *argv[]){
     
     //load image if provided
     if(cmd_args.img_name){
+
         if(image_load( &img, cmd_args.img_name ) != F_OK){
             return 1;
         }
@@ -91,20 +115,16 @@ int main(int argc, char *argv[]){
     
     //dump colors in rgb or hex
     if(cmd_args.dump_colors){
-
-        if(img.data == NULL){
+        
+        if(img == NULL ){
             fprintf(stderr, "Provide an image input\n");
             fprintf(stderr, "Usage: %s [-vh]\n", argv[0]);
             fprintf(stderr, "       %s [file...] [-options]\n", argv[0]);
-            return 1;
+            return F_ERROR;
         }
 
-        for (unsigned char *p = img.data ; p != img.data + img.size; p+= img.channels){
-            if(cmd_args.print_hex){
-                printf("#%02x%02x%02x\n", *p, *(p+1), *(p+2));
-            } else{
-                printf("%d\t%d\t%d\n", *p, *(p+1), *(p+2));
-            }
+        if(dump_colors(img, cmd_args.print_hex) != F_OK){
+            return 1;
         }
 
     }
@@ -121,7 +141,7 @@ int main(int argc, char *argv[]){
       printf("Show help\n");
     }
     
-    image_free(&img);
+    image_free(img);
 
     return 0;
 }
