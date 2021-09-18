@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
             fprintf(stderr, "Provide an image input\n");
             fprintf(stderr, "Usage: %s [-vh]\n", argv[0]);
             fprintf(stderr, "       %s [file...] [-options]\n", argv[0]);
-            return F_ERROR;
+            return 1;
         }
 
         if(dump_colors(img, cmd_args.print_hex) != F_OK){
