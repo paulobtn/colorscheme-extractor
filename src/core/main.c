@@ -4,6 +4,8 @@
 #include <core/test.h>
 #include <kmeans/kmeans.h>
 
+#include <stdint.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <ext/stb_image/stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -14,66 +16,112 @@
 
 int parse_cmd_input( int argc, char** argv);
 
+typedef struct {
+    int width;
+    int height;
+    int channels;
+    size_t size;
+    uint8_t *data;
+} Image;
+
+int image_load(Image *img, unsigned char *img_name){
+    
+    img->data = stbi_load(img_name,
+                          &(img->width),
+                          &(img->height),
+                          &(img->channels),
+                          0);
+    if(img->data == NULL){
+        fprintf(stderr, "Error in loading the image\n");
+        return F_ERROR; 
+    }
+
+    img->size = (img->width)*(img->height)*(img->channels);
+
+    return F_OK;
+}
+
+void image_free(Image *img){
+
+    if(img == NULL){
+        return;
+    }
+
+    if(img->data != NULL)
+        stbi_image_free(img->data);
+}
+
 /* cmd input variables:
  * set automatically by parse_cmd_input
  * they indicate the flags for each command line option
  * and the working image file name
  */
-static int  show_version;
-static int  show_help;
-static int  create_colors;
-static int  dump_colors;
-static char *img_name;
+struct Args {
+    int  show_version;
+    int  show_help;
+    int  create_colors;
+    int  dump_colors;
+    int  print_hex;
+    char *img_name;
+};
+
+struct Args cmd_args = {
+    .show_version       = 0,
+    .show_help          = 0,
+    .create_colors      = 0,
+    .dump_colors        = 0,
+    .print_hex          = 0,
+    .img_name          = NULL
+};
 
 int main(int argc, char *argv[]){
     
-    int width, height, channels = 0;
-    unsigned char *img = NULL;
+    Image img;
     
     if(parse_cmd_input(argc, argv) != F_OK){
         return 1;
     }
     
-    if(img_name){
-
-        img = stbi_load(img_name, &width, &height, &channels, 0);
-        if(img == NULL){
-            fprintf(stderr, "Error in loading the image\n");
-            return 1; 
+    //load image if provided
+    if(cmd_args.img_name){
+        if(image_load( &img, cmd_args.img_name ) != F_OK){
+            return 1;
         }
-        printf("Loaded image %s\n", img_name);
-        printf("width:    \t%dpx\n", width);
-        printf("height:   \t%dpx\n", height);
-        printf("channels: \t%d\n", channels);
     }
+    
+    //dump colors in rgb or hex
+    if(cmd_args.dump_colors){
 
-    if(dump_colors){
-
-        if(img_name == NULL){
+        if(img.data == NULL){
             fprintf(stderr, "Provide an image input\n");
             fprintf(stderr, "Usage: %s [-vh]\n", argv[0]);
             fprintf(stderr, "       %s [file...] [-options]\n", argv[0]);
             return 1;
         }
 
-        printf("Dump colors from image %s\n", img_name);
+        for (unsigned char *p = img.data ; p != img.data + img.size; p+= img.channels){
+            if(cmd_args.print_hex){
+                printf("#%02x%02x%02x\n", *p, *(p+1), *(p+2));
+            } else{
+                printf("%d\t%d\t%d\n", *p, *(p+1), *(p+2));
+            }
+        }
+
     }
 
-    if(create_colors){
-      printf("Create colorscheme from image %s\n", img_name);
+    if(cmd_args.create_colors){
+      printf("Create colorscheme from image %s\n", cmd_args.img_name);
     }
 
-    if(show_version){
+    if(cmd_args.show_version){
       printf("Show version\n");
     }
 
-    if(show_help){
+    if(cmd_args.show_help){
       printf("Show help\n");
     }
     
-    if(img != NULL){
-        stbi_image_free(img);
-    }
+    image_free(&img);
 
     return 0;
 }
@@ -81,7 +129,7 @@ int main(int argc, char *argv[]){
 int parse_cmd_input( int argc, char** argv){
 
     int opt_char = 0; //command line option
-    char *opt_string = "vhcd";
+    char *opt_string = "vhcdx";
 
     while (1) {
 
@@ -90,6 +138,7 @@ int parse_cmd_input( int argc, char** argv){
             {"help",          no_argument,       0,   'h'},
             {"create-colors", no_argument,       0,   'c'},
             {"dump-colors",   no_argument,       0,   'd'},
+            {"hex",           no_argument,       0,   'x'},
             {0,               0,                 0,    0 }
         };
 
@@ -100,10 +149,11 @@ int parse_cmd_input( int argc, char** argv){
             break;
 
         switch (opt_char) {
-            case 'v': show_version  = 1; break;
-            case 'h': show_help     = 1; break;
-            case 'c': create_colors = 1; break;
-            case 'd': dump_colors   = 1; break;
+            case 'v': cmd_args.show_version  = 1; break;
+            case 'h': cmd_args.show_help     = 1; break;
+            case 'c': cmd_args.create_colors = 1; break;
+            case 'd': cmd_args.dump_colors   = 1; break;
+            case 'x': cmd_args.print_hex     = 1; break;
             default: goto PARSE_CMD_INPUT_ERR;
         }
     }
@@ -115,7 +165,7 @@ int parse_cmd_input( int argc, char** argv){
             goto PARSE_CMD_INPUT_ERR;
         }
         
-        img_name = argv[optind];
+        cmd_args.img_name = argv[optind];
     }
 
     return F_OK;
