@@ -137,15 +137,6 @@ int dump_colors(Image* img_p, int hex){
         return CORE_ERROR;
     }
 
-    Pixel p = {
-        {
-            0xaa,
-            0xbb,
-            0xcc,
-            0xdd
-        }
-    };
-
     Pixel temp_pixel;
     uint32_t temp_hex;
 
