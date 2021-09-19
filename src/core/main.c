@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <core/test.h>
 #include <kmeans/kmeans.h>
 
@@ -133,12 +135,22 @@ int dump_colors(Image* img_p, int hex){
         fprintf(stderr, "Provide an image input\n");
         return CORE_ERROR;
     }
+    
+    Pixel temp_pixel;
+    uint32_t temp_hex;
 
-    for (unsigned char *p = img_p->data ; p != img_p->data + img_p->size; p+= img_p->channels){
-        if(hex){
-            printf("#%02x%02x%02x\n", *p, *(p+1), *(p+2));
-        } else{
-            printf("%d\t%d\t%d\n", *p, *(p+1), *(p+2));
+    for(int y = 0 ; y < img_p->height ; y++){
+        for(int x = 0 ; x < img_p->width ; x++){
+            image_get_pixel(img_p, x, y, &temp_pixel);
+            if(hex){
+                temp_hex = image_pixel_to_32(temp_pixel);
+                printf("#%08" PRIx32 "\n", temp_hex);
+            } else{
+                printf("%" PRIu8 " ",  temp_pixel.val[0]);
+                printf("%" PRIu8 " ",  temp_pixel.val[1]);
+                printf("%" PRIu8 " ",  temp_pixel.val[2]);
+                printf("%" PRIu8 "\n", temp_pixel.val[3]);
+            }
         }
     }
 

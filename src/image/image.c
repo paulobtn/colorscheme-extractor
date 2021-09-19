@@ -31,3 +31,47 @@ void image_free(Image *img_p){
 
     free(img_p);
 }
+
+int image_get_pixel(Image *img_p, unsigned int x, unsigned int y, Pixel* p){
+
+    if(img_p == NULL){
+        fprintf(stderr, "invalid image\n");
+        return IMAGE_ERROR;
+    }
+
+    if(x >= img_p->width || y >= img_p->height){
+        fprintf(stderr, "invalid pixel position\n");
+        return IMAGE_ERROR;
+    }
+
+    int position = (y*img_p->width + x)*img_p->channels;
+    
+    for(int i = 0 ; i < img_p->channels ; i++){
+        p->val[i] = *(img_p->data + position + i);
+    }
+
+    return IMAGE_OK;
+
+}
+
+uint32_t image_pixel_to_32(Pixel pixel){
+    uint32_t ret = 0;
+    ret = pixel.val[0];
+    ret = (ret << 8)  | pixel.val[1];
+    ret = (ret << 8)  | pixel.val[2];
+    ret = (ret << 8)  | pixel.val[3];
+    return ret;
+}
+
+Pixel image_32_to_pixel(uint32_t num){
+    Pixel pixel;
+    pixel.val[3] = 0x0000FF & num; 
+    num >>= 8;
+    pixel.val[2] = 0x0000FF & num; 
+    num >>= 8;
+    pixel.val[1] = 0x0000FF & num; 
+    num >>= 8;
+    pixel.val[0] = 0x0000FF & num; 
+    num >>= 8;
+    return pixel;
+}
