@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <inttypes.h>
+
 
 #define IMAGE_OK    0
 #define IMAGE_ERROR -1
@@ -22,9 +24,9 @@ typedef struct {
 
 // pixel type
 // stores [r, g, b, a] if rgba
-//       [r, g, b, 0] if rgb
-//       [v, 0, 0, 0] if grayscale with one channel
-//       [v, a, 0, 0] if grayscale with transparency
+//        [r, g, b, 0] if rgb
+//        [v, 0, 0, 0] if grayscale with one channel
+//        [v, a, 0, 0] if grayscale with transparency
 typedef struct {
     uint8_t val[4];
 } Pixel;
@@ -37,6 +39,12 @@ void image_free(Image *img_p);
 
 // get the image pixel in the position (x,y)
 int image_get_pixel(Image *img_p, unsigned int x, unsigned int y, Pixel* p);
+
+// print a pixel with a customizable format
+// channels indicate how many channels to print
+// hex = 0 means that it will print in the format R G B
+// hex = 1 means that it will print in hexadecimal
+int image_print_pixel(Pixel pixel, unsigned int channels, int hex);
 
 // Get a 32 bits number from the rgba pixel
 uint32_t image_pixel_to_32(Pixel pixel);

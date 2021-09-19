@@ -54,6 +54,31 @@ int image_get_pixel(Image *img_p, unsigned int x, unsigned int y, Pixel* p){
 
 }
 
+int image_print_pixel(Pixel pixel, unsigned int channels, int hex){
+    
+    if(channels == 0 || channels > 4 ){
+        fprintf(stderr, "channels must be 1-4\n");
+        return IMAGE_ERROR;
+    }
+
+    if(hex){
+        printf("#");
+        for(int i = 0 ; i < channels ; i++){
+            printf("%02" PRIx8 "", pixel.val[i]) ;
+        }
+        printf("\n");
+    } else{
+        int i = 0;
+        for(i = 0 ; i < channels-1; i++){
+            printf("%" PRIu8 " ",  pixel.val[i]);
+        }
+        printf("%" PRIu8 "\n",  pixel.val[i]);
+    }
+
+    return IMAGE_OK;
+
+}
+
 uint32_t image_pixel_to_32(Pixel pixel){
     uint32_t ret = 0;
     ret = pixel.val[0];
