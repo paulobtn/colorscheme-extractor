@@ -5,6 +5,9 @@
 int image_load(Image **img_p, unsigned char *img_name){
 
     *img_p = malloc(sizeof(Image));
+    if(*img_p == NULL){
+        fprintf(stderr, "Error in allocating memory\n");
+    }
     
     (*img_p)->data = stbi_load(img_name,
                           &((*img_p)->width),

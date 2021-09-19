@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-
 #define IMAGE_OK    0
 #define IMAGE_ERROR -1
 

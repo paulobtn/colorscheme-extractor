@@ -4,10 +4,13 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <search.h>
+#include <string.h>
+
 #include <core/test.h>
 #include <kmeans/kmeans.h>
 
 #include <image/image.h>
+#include <utils/arrstr.h>
 
 #define CORE_OK       0
 #define CORE_ERROR   -1
@@ -136,10 +139,44 @@ int dump_colors(Image* img_p, int hex){
         fprintf(stderr, "Provide an image input\n");
         return CORE_ERROR;
     }
+    
+    // the keys to the hash table are the colors in hex
+    // 9 characters because of the \0
+    /* char **keys = NULL; */
+    /* size_t keys_num = 0; */
+    /* keys_num = arr_str_push(&keys, keys_num, "key1"); */
+    /* keys_num = arr_str_push(&keys, keys_num, "key2"); */
+    /* keys_num = arr_str_push(&keys, keys_num, "key3"); */
+    /* keys_num = arr_str_push(&keys, keys_num, "key4"); */
+    /* for(int i = 0 ; i < keys_num ; i++){ */
+        /* printf("%s\n", keys[i]); */
+    /* } */
+    /* arr_str_free(keys, keys_num); */
+
+    /* uint32_t color; */
+    /* Pixel pixel; */
+    /* ENTRY e; */
+    /* ENTRY *ep; */
+    /* char key[8]; */
+    /* hcreate(img_p->size); */
+    /* for(int y = 0 ; y < img_p->height ; y++){ */
+        /* for(int x = 0 ; x < img_p->width ; x++){ */
+            /* image_get_pixel(img_p, x, y, &pixel); */
+            /* color = image_pixel_to_32(pixel); */
+            /* sprintf(key, "%"PRIx32, color ); */
+            /* e.key = key; */
+            /* e.data = (void *) color; */
+            /* ep = hsearch(e, ENTER); */
+            /* //check if there's a failure */
+            /* if(ep == NULL){ */
+                /* fprintf(stderr, "hash table entry failed\n"); */
+                /* return CORE_ERROR; */
+            /* } */
+        /* } */
+    /* } */
 
     Pixel temp_pixel;
     uint32_t temp_hex;
-
     for(int y = 0 ; y < img_p->height ; y++){
         for(int x = 0 ; x < img_p->width ; x++){
             image_get_pixel(img_p, x, y, &temp_pixel);
