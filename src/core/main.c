@@ -147,8 +147,8 @@ int dump_colors(Image* img_p, int hex){
     hcreate(img_p->size);
     
     // temporary values
-    uint32_t color;
-    Pixel pixel;
+    uint32_t color = 0;
+    Pixel pixel = { { 0,0,0,0 } };
     char key[9];
     ENTRY e;
     ENTRY *ep;
@@ -173,6 +173,7 @@ int dump_colors(Image* img_p, int hex){
                 // put color in the hash table
                 e.key = strdup(key);
                 e.data = (void *) (uintptr_t) color;
+
                 ep = hsearch(e, ENTER);
                 if(ep == NULL){
                     fprintf(stderr, "hash table entry failed\n");
