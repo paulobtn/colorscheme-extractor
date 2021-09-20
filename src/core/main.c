@@ -142,47 +142,61 @@ int dump_colors(Image* img_p, int hex){
     
     // the keys to the hash table are the colors in hex
     // 9 characters because of the \0
-    /* char **keys = NULL; */
-    /* size_t keys_num = 0; */
-    /* keys_num = arr_str_push(&keys, keys_num, "key1"); */
-    /* keys_num = arr_str_push(&keys, keys_num, "key2"); */
-    /* keys_num = arr_str_push(&keys, keys_num, "key3"); */
-    /* keys_num = arr_str_push(&keys, keys_num, "key4"); */
-    /* for(int i = 0 ; i < keys_num ; i++){ */
-        /* printf("%s\n", keys[i]); */
-    /* } */
-    /* arr_str_free(keys, keys_num); */
+    char **keys = NULL;
+    size_t keys_num = 0;
+    hcreate(img_p->size);
+    
+    // temporary values
+    uint32_t color;
+    Pixel pixel;
+    char key[9];
+    ENTRY e;
+    ENTRY *ep;
 
-    /* uint32_t color; */
-    /* Pixel pixel; */
-    /* ENTRY e; */
-    /* ENTRY *ep; */
-    /* char key[8]; */
-    /* hcreate(img_p->size); */
-    /* for(int y = 0 ; y < img_p->height ; y++){ */
-        /* for(int x = 0 ; x < img_p->width ; x++){ */
-            /* image_get_pixel(img_p, x, y, &pixel); */
-            /* color = image_pixel_to_32(pixel); */
-            /* sprintf(key, "%"PRIx32, color ); */
-            /* e.key = key; */
-            /* e.data = (void *) color; */
-            /* ep = hsearch(e, ENTER); */
-            /* //check if there's a failure */
-            /* if(ep == NULL){ */
-                /* fprintf(stderr, "hash table entry failed\n"); */
-                /* return CORE_ERROR; */
-            /* } */
-        /* } */
-    /* } */
 
-    Pixel temp_pixel;
-    uint32_t temp_hex;
+    // loop through all pixels and put the unique ones
+    // in a hashmap
     for(int y = 0 ; y < img_p->height ; y++){
         for(int x = 0 ; x < img_p->width ; x++){
-            image_get_pixel(img_p, x, y, &temp_pixel);
-            image_print_pixel(temp_pixel, img_p->channels, hex);
+            image_get_pixel(img_p, x, y, &pixel);
+            color = image_pixel_to_32(pixel);
+            sprintf(key, "%"PRIx32, color );
+            
+            //find out if key exists in the hashmap
+            e.key = key;
+            ep = hsearch(e, FIND);
+            
+            // if doesn't exist, put key in the keys array
+            if(ep == 0){
+                keys_num = arr_str_push(&keys, keys_num, key);
+                
+                // put color in the hash table
+                e.key = strdup(key);
+                e.data = (void *) (uintptr_t) color;
+                ep = hsearch(e, ENTER);
+                if(ep == NULL){
+                    fprintf(stderr, "hash table entry failed\n");
+                    return CORE_ERROR;
+                }
+            } 
         }
     }
+    
+    // print all different pixel
+    for(int i = 0 ; i < keys_num ; i++){
+        e.key = keys[i];
+        ep = hsearch(e, FIND);
+        
+        if(ep){
+            color = (uint32_t) (uintptr_t) ep->data;
+            Pixel p = image_32_to_pixel(color);
+            image_print_pixel(p, img_p->channels, hex);
+            free(ep->key);
+        }
+    }
+
+    hdestroy();
+    arr_str_free(keys, keys_num);
 
     return CORE_OK;
 }
