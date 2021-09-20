@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <search.h>
+#include <utils/arrstr.h>
 
 #define IMAGE_OK    0
 #define IMAGE_ERROR -1
@@ -50,5 +52,10 @@ uint32_t image_pixel_to_32(Pixel pixel);
 
 // given a 32 bits number, extract the rgba values to the pixel
 Pixel image_32_to_pixel(uint32_t num);
+
+// extract unique colors from an image and put in an array uint32_t *colors
+// the user should pass the reference &colors and colors should be dealocated
+// after the usage.
+size_t image_unique_colors(Image* img_p, uint32_t **colors );
 
 #endif /* IMAGE_H */

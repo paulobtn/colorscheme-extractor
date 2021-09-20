@@ -103,3 +103,74 @@ Pixel image_32_to_pixel(uint32_t num){
     num >>= 8;
     return pixel;
 }
+
+size_t image_unique_colors(Image* img_p, uint32_t **colors ){
+
+    if(img_p == NULL){
+        fprintf(stderr, "Provide an image input\n");
+        return 0;
+    }
+
+    // the keys to the hash table are the colors in hex
+    // 9 characters because of the \0
+    char **keys = NULL;
+    size_t keys_num = 0;
+    hcreate(img_p->size);
+    
+    // temporary values
+    uint32_t color = 0;
+    Pixel pixel = { { 0,0,0,0 } };
+    char key[9];
+    ENTRY e;
+    ENTRY *ep;
+
+    // loop through all pixels and put the unique ones
+    // in a hashmap
+    for(int y = 0 ; y < img_p->height ; y++){
+        for(int x = 0 ; x < img_p->width ; x++){
+            image_get_pixel(img_p, x, y, &pixel);
+            color = image_pixel_to_32(pixel);
+            sprintf(key, "%"PRIx32, color );
+            
+            //find out if key exists in the hashmap
+            e.key = key;
+            ep = hsearch(e, FIND);
+            
+            // if doesn't exist, put key in the keys array
+            if(ep == 0){
+                keys_num = arr_str_push(&keys, keys_num, key);
+                
+                // put color in the hash table
+                e.key = strdup(key);
+                e.data = (void *) (uintptr_t) color;
+                ep = hsearch(e, ENTER);
+                if(ep == NULL){
+                    fprintf(stderr, "hash table entry failed\n");
+                    return 0;
+                }
+            } 
+        }
+    }
+    
+    // put color values in the array colors[]
+    *colors = malloc(keys_num * sizeof(uint32_t));
+    if(*colors == NULL){
+        fprintf(stderr, "error in allocating memory\n");
+        return 0;
+    }
+    for(int i = 0 ; i < keys_num ; i++){
+        e.key = keys[i];
+        ep = hsearch(e, FIND);
+
+        if(ep){
+            *(*colors + i) = (uint32_t) (uintptr_t) ep->data;
+            free(ep->key);
+        }
+    }
+
+    hdestroy();
+    arr_str_free(keys, keys_num);
+
+    return keys_num;
+}
+
