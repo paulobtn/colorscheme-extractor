@@ -55,6 +55,10 @@ void kmeans_initialize_kpp(Kpoint *points, int num_points, Kpoint *centroids, in
 	double sum = 0;
  
 	distances = (double*) malloc(sizeof(double) * num_points);
+    if(distances == NULL){
+        fprintf(stderr, "Error in allocating memory\n");
+        exit(EXIT_FAILURE);
+    }
  
 	// the fist cluster is picked at random
 	centroids[0] = points[ rand() % num_points ];
