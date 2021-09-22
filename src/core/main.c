@@ -104,7 +104,15 @@ int main(int argc, char *argv[]){
 
         printf("centroid 1: %lf\t%lf\t%lf\n", centroids[0].val[0], centroids[0].val[1], centroids[0].val[2]);
         printf("centroid 2: %lf\t%lf\t%lf\n", centroids[1].val[0], centroids[1].val[1], centroids[1].val[2]);
+        printf("centroid 3: %lf\t%lf\t%lf\n\n", centroids[2].val[0], centroids[2].val[1], centroids[2].val[2]);
+
+        kmeans_apply(points, qtd_pontos, centroids, qtd_clusters);
+
+        printf("centroid 1: %lf\t%lf\t%lf\n", centroids[0].val[0], centroids[0].val[1], centroids[0].val[2]);
+        printf("centroid 2: %lf\t%lf\t%lf\n", centroids[1].val[0], centroids[1].val[1], centroids[1].val[2]);
         printf("centroid 3: %lf\t%lf\t%lf\n", centroids[2].val[0], centroids[2].val[1], centroids[2].val[2]);
+
+
         
     }
 

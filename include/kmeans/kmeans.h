@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 /*
 a data structure that indicates a point that will be used for the
@@ -39,5 +40,8 @@ unsigned int kmeans_nearest_centroid(Kpoint *point, Kpoint *centroids, unsigned 
 if provide a good estimative for the initial clusters. This initialization method gives
 a high probability that the centroids will be far away from each other. */
 void kmeans_initialize_kpp(Kpoint *points, int num_points, Kpoint *centroids, int num_clusters);
+
+/* Apply the kmeans clustering */
+void kmeans_apply(Kpoint *points, int num_points, Kpoint *centroids, int num_clusters);
 
 #endif /* KMEANS_H */
