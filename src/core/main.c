@@ -69,24 +69,31 @@ int main(int argc, char *argv[]){
     if(cmd_args.create_colors){
         printf("This will extract colors from the image %s using Kmeans.\n", cmd_args.img_name);
         
-        KMEANS_T* kmeans = NULL;
-        kmeans = kmeans_alloc(3, 2, 4);
+        KMEANS_T* kp = NULL;
+        kp = kmeans_alloc(10, 2, 5);
         
-        for(int i = 0; i < kmeans->num_points ; i++){
-            for(int j = 0 ; j < kmeans->dim ; j++){
-                printf("%d ", kmeans->points[j]);
+        double value[] = {1,2,3,4,5};
+        Kpoint *p = kmeans_create_point(value, 5);
+
+        /* kmeans_insert_point(kp, 2, value, 5); */
+        kmeans_insert_point(kp, 2, p);
+        
+        for(int i = 0; i < kp->num_points ; i++){
+            for(int j = 0 ; j < kp->dim ; j++){
+                printf("%lf ", kp->points[i].val[j]);
             }
             printf("\n");
         }
         printf("clusters\n");
-        for(int i = 0; i < kmeans->num_clusters ; i++){
-            for(int j = 0 ; j < kmeans->dim ; j++){
-                printf("%d ", kmeans->clusters[j]);
+        for(int i = 0; i < kp->num_clusters ; i++){
+            for(int j = 0 ; j < kp->dim ; j++){
+                printf("%lf ", kp->clusters[j].val);
             }
             printf("\n");
         }
-
-        kmeans_destroy(kmeans);
+        
+        kmeans_destroy_point(p);
+        kmeans_destroy(kp);
         // some tests on the kmeans initialization
         // I will delete this section later
         /* int qtd_pontos = 15; */

@@ -1,5 +1,21 @@
 #include <kmeans/kmeans.h>
 
+Kpoint* kmeans_create_point(double* val, size_t size){
+    Kpoint* pt = NULL;
+    pt = malloc(sizeof(Kpoint));
+    pt->val = malloc(size*sizeof(double));
+    pt->cluster = 0;
+    pt->dim = size;
+    memcpy(pt->val, val, size*sizeof(double));
+    return pt;
+}
+
+void kmeans_destroy_point(Kpoint* pt){
+    if(pt == NULL) return;
+    free(pt->val);
+    free(pt);
+}
+
 KMEANS_T* kmeans_alloc(unsigned int num_points, unsigned int num_clusters, unsigned int dim){
 
     KMEANS_T *kp = NULL;
@@ -16,19 +32,23 @@ KMEANS_T* kmeans_alloc(unsigned int num_points, unsigned int num_clusters, unsig
     
     // allocate the dimensions for each point and cluster
     for(int i = 0 ; i < num_points ; i++){
-        kp->points[i].val = malloc(dim*sizeof(double));
+        kp->points[i].val = calloc(dim, sizeof(double));
+        kp->points[i].dim = dim;
         kp->points[i].cluster = 0;
     }
 
     for(int i = 0 ; i < num_clusters ; i++){
-        kp->clusters[i].val = malloc(dim*sizeof(double));
-        kp->points[i].cluster = i;
+        kp->clusters[i].val = calloc(dim, sizeof(double));
+        kp->clusters[i].dim = dim;
+        kp->clusters[i].cluster = i;
     }
 
     return kp;
 }
 
 void kmeans_destroy(KMEANS_T* kp){
+   
+   if(kp == NULL) return;
 
    // free points values
    for(int i = 0; i < kp->num_points ; i++){
@@ -47,6 +67,23 @@ void kmeans_destroy(KMEANS_T* kp){
    free(kp->clusters);
 
    free(kp);
+}
+
+unsigned int kmeans_insert_point(KMEANS_T* kp,
+                                 unsigned int index,
+                                 Kpoint* pt
+                                 )
+{
+    if(kp == NULL || pt == NULL) return KMEANS_ERROR;
+    if(pt->dim != kp->dim){
+        fprintf(stderr, "point needs to have %d dimensions\n", kp->dim);
+        return KMEANS_ERROR;
+    }
+    kp->points[index].cluster = pt->cluster;
+    kp->points[index].dim = pt->dim;
+    memcpy(kp->points[index].val, pt->val, pt->dim  * sizeof(double));
+    /* kp->points[index] = pt; */
+    return KMEANS_OK;
 }
 
 static double kmeans_dist2(Kpoint *a, Kpoint *b, unsigned int dim) {
