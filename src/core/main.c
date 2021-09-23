@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <search.h>
 #include <string.h>
+#include <time.h>
 
 #include <kmeans/kmeans.h>
 #include <image/image.h>
@@ -40,6 +41,7 @@ struct Args cmd_args = {
 };
 
 int main(int argc, char *argv[]){
+
     
     Image* img = NULL;
     
@@ -67,52 +69,64 @@ int main(int argc, char *argv[]){
     if(cmd_args.create_colors){
         printf("This will extract colors from the image %s using Kmeans.\n", cmd_args.img_name);
         
+        KMEANS_T* kmeans = NULL;
+        kmeans = kmeans_alloc(3, 2, 4);
+        
+        for(int i = 0; i < kmeans->num_points ; i++){
+            for(int j = 0 ; j < kmeans->dim ; j++){
+                printf("%d ", kmeans->points[j]);
+            }
+            printf("\n");
+        }
+        printf("clusters\n");
+        for(int i = 0; i < kmeans->num_clusters ; i++){
+            for(int j = 0 ; j < kmeans->dim ; j++){
+                printf("%d ", kmeans->clusters[j]);
+            }
+            printf("\n");
+        }
+
+        kmeans_destroy(kmeans);
         // some tests on the kmeans initialization
         // I will delete this section later
-        int qtd_pontos = 15;
-        int qtd_clusters = 3;
+        /* int qtd_pontos = 15; */
+        /* int qtd_clusters = 3; */
+        /* int dim = 3; */
 
-        Kpoint centroids[3] = {
-            {.val = {0,0,0}, .dim = 3, .cluster = 0},
-            {.val = {0,0,0}, .dim = 3, .cluster = 0},
-            {.val = {0,0,0}, .dim = 3, .cluster = 0},
-        };
-        
-        Kpoint points[] = {
+        /* Kpoint centroids[3] = { */
+            /* {.val = {0,0,0}, .cluster = 0}, */
+            /* {.val = {0,0,0}, .cluster = 0}, */
+            /* {.val = {0,0,0}, .cluster = 0}, */
+        /* }; */
 
-            {.val = { 1,  1,  0},    .dim = 3, .cluster = 0},
-            {.val = { 1,  2, -1},    .dim = 3, .cluster = 0}, 
-            {.val = {-1,  1,  2},    .dim = 3, .cluster = 0},
-            {.val = { 3,  2,  1},    .dim = 3, .cluster = 0},
-            {.val = {-3, -2, -1},    .dim = 3, .cluster = 0},
+        /* Kpoint points[] = { */
 
-            {.val = {20, 18, 16},    .dim = 3, .cluster = 0},
-            {.val = {22, 21, 22},    .dim = 3, .cluster = 0},
-            {.val = {19, 20, 18},    .dim = 3, .cluster = 0},
-            {.val = {23, 19, 19},    .dim = 3, .cluster = 0},
-            {.val = {21, 21, 17},    .dim = 3, .cluster = 0},
+            /* {.val = { 1,  1,  0},    .cluster = 0}, */
+            /* {.val = { 1,  2, -1},    .cluster = 0},  */
+            /* {.val = {-1,  1,  2},    .cluster = 0}, */
+            /* {.val = { 3,  2,  1},    .cluster = 0}, */
+            /* {.val = {-3, -2, -1},    .cluster = 0}, */
 
-            {.val = {-20, -18, -19}, .dim = 3, .cluster = 0},
-            {.val = {-22, -21, -20}, .dim = 3, .cluster = 0},
-            {.val = {-19, -20, -21}, .dim = 3, .cluster = 0},
-            {.val = {-23, -19, -22}, .dim = 3, .cluster = 0},
-            {.val = {-21, -21, -18}, .dim = 3, .cluster = 0}
+            /* {.val = {20, 18, 16},    .cluster = 0}, */
+            /* {.val = {22, 21, 22},    .cluster = 0}, */
+            /* {.val = {19, 20, 18},    .cluster = 0}, */
+            /* {.val = {23, 19, 19},    .cluster = 0}, */
+            /* {.val = {21, 21, 17},    .cluster = 0}, */
 
-        };
+            /* {.val = {-20, -18, -19}, .cluster = 0}, */
+            /* {.val = {-22, -21, -20}, .cluster = 0}, */
+            /* {.val = {-19, -20, -21}, .cluster = 0}, */
+            /* {.val = {-23, -19, -22}, .cluster = 0}, */
+            /* {.val = {-21, -21, -18}, .cluster = 0} */
 
-        kmeans_initialize_kpp(points, qtd_pontos, centroids, qtd_clusters);
-
-        printf("centroid 1: %lf\t%lf\t%lf\n", centroids[0].val[0], centroids[0].val[1], centroids[0].val[2]);
-        printf("centroid 2: %lf\t%lf\t%lf\n", centroids[1].val[0], centroids[1].val[1], centroids[1].val[2]);
-        printf("centroid 3: %lf\t%lf\t%lf\n\n", centroids[2].val[0], centroids[2].val[1], centroids[2].val[2]);
-
-        kmeans_apply(points, qtd_pontos, centroids, qtd_clusters);
-
-        printf("centroid 1: %lf\t%lf\t%lf\n", centroids[0].val[0], centroids[0].val[1], centroids[0].val[2]);
-        printf("centroid 2: %lf\t%lf\t%lf\n", centroids[1].val[0], centroids[1].val[1], centroids[1].val[2]);
-        printf("centroid 3: %lf\t%lf\t%lf\n", centroids[2].val[0], centroids[2].val[1], centroids[2].val[2]);
+        /* }; */
 
 
+        /* kmeans_apply(points, qtd_pontos, centroids, qtd_clusters, KMEANS_KPP, 3); */
+
+        /* printf("centroid 1: %lf\t%lf\t%lf\n", centroids[0].val[0], centroids[0].val[1], centroids[0].val[2]); */
+        /* printf("centroid 2: %lf\t%lf\t%lf\n", centroids[1].val[0], centroids[1].val[1], centroids[1].val[2]); */
+        /* printf("centroid 3: %lf\t%lf\t%lf\n", centroids[2].val[0], centroids[2].val[1], centroids[2].val[2]); */
         
     }
 

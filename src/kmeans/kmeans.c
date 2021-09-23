@@ -1,27 +1,75 @@
 #include <kmeans/kmeans.h>
 
-double kmeans_dist2(Kpoint *a, Kpoint *b) {
+KMEANS_T* kmeans_alloc(unsigned int num_points, unsigned int num_clusters, unsigned int dim){
+
+    KMEANS_T *kp = NULL;
     
-    if(a->dim != b->dim){
-        fprintf(stderr, "points must have the same dimension\n");
-        exit(EXIT_FAILURE);
+    kp = malloc(sizeof(KMEANS_T));
+
+    kp->num_clusters = num_clusters;
+    kp->num_points   = num_points;
+    kp->dim          = dim;
+    
+    // allocate arrays for points and clusters
+    kp->points = malloc(num_points * sizeof(Kpoint));
+    kp->clusters = malloc(num_clusters * sizeof(Kpoint));
+    
+    // allocate the dimensions for each point and cluster
+    for(int i = 0 ; i < num_points ; i++){
+        kp->points[i].val = malloc(dim*sizeof(double));
+        kp->points[i].cluster = 0;
     }
+
+    for(int i = 0 ; i < num_clusters ; i++){
+        kp->clusters[i].val = malloc(dim*sizeof(double));
+        kp->points[i].cluster = i;
+    }
+
+    return kp;
+}
+
+void kmeans_destroy(KMEANS_T* kp){
+
+   // free points values
+   for(int i = 0; i < kp->num_points ; i++){
+       free(kp->points[i].val);
+   }
+
+   // free points array
+   free(kp->points);
+
+   //free cluster values
+   for(int i = 0; i < kp->num_clusters ; i++){
+       free(kp->clusters[i].val);
+   } 
+
+   // free clusters array
+   free(kp->clusters);
+
+   free(kp);
+}
+
+static double kmeans_dist2(Kpoint *a, Kpoint *b, unsigned int dim) {
+    
     double sqrsum = 0;
-    for(int i = 0 ; i < a->dim ; i++){
+    for(int i = 0 ; i < dim ; i++){
         sqrsum += pow(a->val[i] - b->val[i], 2);
     }
     return sqrsum;
 }
 
 // return the closest distance from a point to a cluster's centroid
-double kmeans_nearest_distance(Kpoint *point, Kpoint *centroids, unsigned int num_clusters)
+static double kmeans_nearest_distance(Kpoint *point,
+                                      Kpoint *centroids,
+                                      unsigned int num_clusters,
+                                      unsigned int dim)
 {
 	double distance = 0;
     double min_distance = 0;
     
 	min_distance = HUGE_VAL;
 	for (int i = 0; i < num_clusters; i++) {
-		distance = kmeans_dist2(&centroids[i], point);
+		distance = kmeans_dist2(&centroids[i], point, dim);
 		if ( distance < min_distance ) {
 			min_distance = distance;
 		}
@@ -29,7 +77,10 @@ double kmeans_nearest_distance(Kpoint *point, Kpoint *centroids, unsigned int nu
 	return min_distance;
 }
 
-unsigned int kmeans_nearest_centroid(Kpoint *point, Kpoint *centroids, unsigned int num_clusters)
+static unsigned int kmeans_nearest_centroid(Kpoint *point,
+                                            Kpoint *centroids,
+                                            unsigned int num_clusters,
+                                            unsigned int dim)
 {
 	double distance;
     double min_distance;
@@ -38,7 +89,7 @@ unsigned int kmeans_nearest_centroid(Kpoint *point, Kpoint *centroids, unsigned 
 	min_distance = HUGE_VAL;
 	cluster_index = point->cluster;	
 	for (int i = 0; i < num_clusters; i++) {
-		distance = kmeans_dist2(&centroids[i], point);
+		distance = kmeans_dist2(&centroids[i], point, dim);
 		if ( distance < min_distance ) {
 			min_distance = distance;
 			cluster_index = i;
@@ -47,7 +98,23 @@ unsigned int kmeans_nearest_centroid(Kpoint *point, Kpoint *centroids, unsigned 
 	return cluster_index;
 }
 
-void kmeans_initialize_kpp(Kpoint *points, int num_points, Kpoint *centroids, int num_clusters) {
+static void kmeans_init_random( Kpoint *points,
+                                unsigned int num_points,
+                                Kpoint *centroids,
+                                unsigned int num_clusters)
+{
+
+    for(int i = 0 ; i < num_clusters ; i++){
+        centroids[i] = points[ rand() % num_points ];
+    }
+}
+
+static void kmeans_init_kpp( Kpoint *points,
+                             unsigned int num_points,
+                             Kpoint *centroids,
+                             unsigned int num_clusters,
+                             unsigned int dim)
+{
     
     // array that stores the shortest distance from a pointer to a cluster
 	double *distances = NULL;
@@ -69,7 +136,7 @@ void kmeans_initialize_kpp(Kpoint *points, int num_points, Kpoint *centroids, in
         // find the distance from each point to the nearest centroid
 		sum = 0;
 		for ( int i = 0; i < num_points; i++ ) {
-			distances[i] = kmeans_nearest_distance(&points[i], centroids, cluster_index);
+			distances[i] = kmeans_nearest_distance(&points[i], centroids, cluster_index, dim);
 			sum += distances[i];
 		}
         
@@ -89,18 +156,52 @@ void kmeans_initialize_kpp(Kpoint *points, int num_points, Kpoint *centroids, in
 	}
  
 	// for each point, assign the associated centroid
-    for (int i = 0; i < num_points; i++){
-        points[i].cluster = kmeans_nearest_centroid(&points[i], centroids, num_clusters);
-    }
+    /* for (int i = 0; i < num_points; i++){ */
+        /* points[i].cluster = kmeans_nearest_centroid(&points[i], centroids, num_clusters); */
+    /* } */
  
 	free(distances);
  
 	return;
 }
 
-void kmeans_apply(Kpoint *points, int num_points, Kpoint *centroids, int num_clusters) {
+static int kmeans_init( Kpoint *points,
+                 unsigned int num_points,
+                 Kpoint *centroids,
+                 unsigned int num_clusters,
+                 KMEANS_INIT_T method,
+                 unsigned int dim)
+{
     
-    unsigned int dim = 3;
+    srand(time(NULL));
+    switch (method){
+        case KMEANS_RANDOM:
+            kmeans_init_random(points, num_points, centroids, num_clusters);
+            break;
+        case KMEANS_KPP: 
+            kmeans_init_kpp(points, num_points, centroids, num_clusters, dim);
+            break;
+        case KMEANS_CUSTOM:
+            // the user has to initialize the centroids with a custom method
+            break;
+        default:
+            fprintf(stderr, "Invalid kmeans initialization method\n");
+            return KMEANS_ERROR;
+    }
+
+    return KMEANS_OK;
+}
+
+void kmeans_apply(
+                  Kpoint *points,
+                  unsigned int num_points,
+                  Kpoint *centroids,
+                  unsigned int num_clusters,
+                  KMEANS_INIT_T init_method,
+                  unsigned int dim
+                  )
+{
+    
     unsigned int changes = 0;
     unsigned int max_iterations = 100;
     //number of points for each cluster
@@ -108,7 +209,12 @@ void kmeans_apply(Kpoint *points, int num_points, Kpoint *centroids, int num_clu
     unsigned int cluster_index = 0;
 
     cluster_size = malloc(num_clusters*sizeof(unsigned int));
+    if(cluster_size == NULL){
+        fprintf(stderr, "Error in allocating memory\n");
+        exit(EXIT_FAILURE);
+    }
 
+    kmeans_init(points, num_points, centroids, num_clusters, init_method, dim);
     
     do{
         memset(cluster_size, 0, dim*sizeof(unsigned int));
@@ -116,7 +222,7 @@ void kmeans_apply(Kpoint *points, int num_points, Kpoint *centroids, int num_clu
         // assign all the points to the closest cluster centroid
         changes = 0;
         for (int i = 0; i < num_points; i++){
-            cluster_index = kmeans_nearest_centroid(&points[i], centroids, num_clusters);
+            cluster_index = kmeans_nearest_centroid(&points[i], centroids, num_clusters, dim);
             if(points[i].cluster != cluster_index){
                 changes++;
             }
