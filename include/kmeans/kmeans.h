@@ -33,9 +33,6 @@ typedef struct {
     Kpoint* clusters;
 } KMEANS_T;
 
-KMEANS_T* kmeans_alloc(unsigned int num_points, unsigned int num_clusters, unsigned int dim);
-
-void kmeans_destroy(KMEANS_T* kp);
 
 /* Initialization methods for Kmeans
  * KMEANS_RANDOM will choose the centroids randomly from the provided points
@@ -50,6 +47,14 @@ typedef enum {
     KMEANS_KPP,
     KMEANS_CUSTOM
 } KMEANS_INIT_T;
+
+/* Creates an object of type KMEANS_T which stores the necessary data to apply kmeans.
+ * The parameters are the number of points num_points, the number of clusters num_clusters
+ * and the dimension of the points dim.*/
+KMEANS_T* kmeans_alloc(unsigned int num_points, unsigned int num_clusters, unsigned int dim);
+
+/* destroys the data allocated by kmeans_alloc */
+void kmeans_destroy(KMEANS_T* kp);
 
 /* given two points with arbitrary dimension, that must be specified
  * in the dim argument inside the point, return the squared distance.
