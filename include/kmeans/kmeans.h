@@ -58,9 +58,6 @@ Kpoint* kmeans_create_point(double* val, size_t size);
 /* Creates an object of type KMEANS_T which stores the necessary data to apply kmeans.
  * The parameters are the number of points num_points, the number of clusters num_clusters
  * and the dimension of the points dim.*/
-// KMEANS_T* kmeans_alloc(unsigned int num_points,
-                       // unsigned int num_clusters,
-                       // unsigned int dim);
 KMEANS_T* kmeans_alloc(double ** points,
                        unsigned int num_points,
                        unsigned int dim,

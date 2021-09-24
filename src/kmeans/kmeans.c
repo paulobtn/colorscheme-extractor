@@ -207,12 +207,6 @@ static void kmeans_init_kpp( Kpoint *points,
 	return;
 }
 
-/* static int kmeans_init( Kpoint *points, */
-                 /* unsigned int num_points, */
-                 /* Kpoint *centroids, */
-                 /* unsigned int num_clusters, */
-                 /* KMEANS_INIT_T method, */
-                 /* unsigned int dim) */
 static int kmeans_init(
             KMEANS_T *kp,
             KMEANS_INIT_T method
