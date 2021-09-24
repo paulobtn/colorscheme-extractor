@@ -174,3 +174,37 @@ size_t image_unique_colors(Image* img_p, uint32_t **colors ){
     return keys_num;
 }
 
+/* typedef struct { */
+    /* int width; */
+    /* int height; */
+    /* int channels; */
+    /* size_t size; */
+    /* uint8_t *data; */
+/* } Image; */
+/* double** image_split_to_double(uint8_t* arr, size_t size, size_t cols ){ */
+double** image_split_to_double(Image* img_p ){
+    /* if(img_p->size % img_p%channels != 0){ */
+        /* return NULL; */
+    /* } */
+    if(img_p == NULL) return NULL;
+
+    double** mat = NULL;
+    size_t lines = img_p->size/img_p->channels;
+
+    size_t i = 0, j = 0;
+    mat = (double**) malloc2d(lines, img_p->channels, sizeof(double) );
+
+    for(int count = 0; count < img_p->size ; count++ ){
+        i = (size_t) floor(count/img_p->channels);
+        j = (size_t) count%img_p->channels;
+        /* printf("%d %d\n", i, j); */
+        mat[i][j] = (double) img_p->data[count];
+    }
+    
+    return mat;
+}
+
+void image_destroy_split(Image* img_p, void** mat){
+    size_t lines = (img_p->size/img_p->channels);
+    free2d((void**)mat, lines);
+}

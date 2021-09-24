@@ -207,7 +207,7 @@ static void kmeans_init_kpp( Kpoint *points,
 	return;
 }
 
-static int kmeans_init(
+int kmeans_init(
             KMEANS_T *kp,
             KMEANS_INIT_T method
             )

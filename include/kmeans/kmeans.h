@@ -111,7 +111,7 @@ static void kmeans_init_random(Kpoint *points,
                                );
 
 /* initialize centroids with a custom method. */
-static int kmeans_init(KMEANS_T *kp, KMEANS_INIT_T method);
+int kmeans_init(KMEANS_T *kp, KMEANS_INIT_T method);
 
 /* Apply the kmeans clustering */
 void kmeans_apply(KMEANS_T *kp, KMEANS_INIT_T init_method, unsigned int max_iterations );

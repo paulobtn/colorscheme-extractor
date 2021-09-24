@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #include <search.h>
 #include <utils/arrstr.h>
+#include <utils/alloc2d.h>
 
 #define IMAGE_OK    0
 #define IMAGE_ERROR -1
@@ -57,5 +58,9 @@ Pixel image_32_to_pixel(uint32_t num);
 // the user should pass the reference &colors and colors should be dealocated
 // after the usage.
 size_t image_unique_colors(Image* img_p, uint32_t **colors );
+
+double** image_split_to_double(Image* img_p );
+
+void image_destroy_split(Image* img_p, void** mat);
 
 #endif /* IMAGE_H */

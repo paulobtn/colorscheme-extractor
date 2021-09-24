@@ -10,6 +10,7 @@
 #include <kmeans/kmeans.h>
 #include <image/image.h>
 #include <utils/arrstr.h>
+#include <utils/alloc2d.h>
 
 #define CORE_OK       0
 #define CORE_ERROR   -1
@@ -40,6 +41,17 @@ struct Args cmd_args = {
     .img_name          = NULL
 };
 
+/* void** split(int arr, int n_arr, int cols, size_t el_size){ */
+    /* void** mat = NULL; */
+    /* int lines = n_arr/cols; */
+    /* mat = malloc(lines*sizeof(void*)); */
+
+    /* for(int i = 0 ; i < lines ; i++){ */
+
+    /* } */
+/* } */
+
+
 int main(int argc, char *argv[]){
 
     
@@ -68,54 +80,28 @@ int main(int argc, char *argv[]){
 
     if(cmd_args.create_colors){
         printf("This will extract colors from the image %s using Kmeans.\n", cmd_args.img_name);
+
+        double** img_sp = NULL;
         
-        double **points = NULL;
-        points = malloc(15*sizeof(double*));
-        for(int i = 0 ; i<15 ; i++){
-            points[i] = malloc(3*sizeof(double));
-        }
-
-        double points_s[15][3] = {
-            { 1,  1,  0},
-            { 1,  2, -1},   
-            {-1,  1,  2},   
-            { 3,  2,  1},   
-            {-3, -2, -1},   
-
-            {20, 18, 16},   
-            {22, 21, 22},   
-            {19, 20, 18},   
-            {23, 19, 19},   
-            {21, 21, 17},   
-
-            {-20, -18, -19},
-            {-22, -21, -20},
-            {-19, -20, -21},
-            {-23, -19, -22},
-            {-21, -21, -18}
-        };
-
-        for(int i = 0 ; i < 15; i++){
-            memcpy(points[i], points_s[i], 3*sizeof(double));
-        }
+        img_sp = image_split_to_double(img);
+        
+        size_t size = img->size/img->channels;
 
         KMEANS_T *kp = NULL;
+        kp = kmeans_alloc( img_sp, size, img->channels, 8);
+        /* kmeans_apply(kp, KMEANS_KPP, 100); */
+        kmeans_init(kp, KMEANS_KPP);
 
-        //array, dimensions, centroids
-        kp = kmeans_alloc( points, 15, 3, 3);
-        for(int i = 0 ; i<15 ; i++){
-            free(points[i]);
-        }
-        free(points);
-
-        kmeans_apply(kp, KMEANS_KPP, 100);
         
-        printf("after processing:\n");
-        printf("centroid 0: %lf\t%lf\t%lf\n", kp->centroids[0].val[0], kp->centroids[0].val[1], kp->centroids[0].val[2]);
-        printf("centroid 1: %lf\t%lf\t%lf\n", kp->centroids[1].val[0], kp->centroids[1].val[1], kp->centroids[1].val[2]);
-        printf("centroid 2: %lf\t%lf\t%lf\n", kp->centroids[2].val[0], kp->centroids[2].val[1], kp->centroids[2].val[2]);
+        for(int i = 0 ; i < 8 ; i++){
+            printf("centroid %d: %lf\t%lf\t%lf\n", i, kp->centroids[i].val[0], kp->centroids[i].val[1], kp->centroids[i].val[2]);
+        }
 
+        image_destroy_split(img, (void**)img_sp);
         kmeans_destroy(kp);
+
+
+
     }
 
     if(cmd_args.show_version){
