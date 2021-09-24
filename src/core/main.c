@@ -69,72 +69,53 @@ int main(int argc, char *argv[]){
     if(cmd_args.create_colors){
         printf("This will extract colors from the image %s using Kmeans.\n", cmd_args.img_name);
         
-        KMEANS_T* kp = NULL;
-        kp = kmeans_alloc(10, 2, 5);
-        
-        double value[] = {1,2,3,4,5};
-        Kpoint *p = kmeans_create_point(value, 5);
+        double **points = NULL;
+        points = malloc(15*sizeof(double*));
+        for(int i = 0 ; i<15 ; i++){
+            points[i] = malloc(3*sizeof(double));
+        }
 
-        /* kmeans_insert_point(kp, 2, value, 5); */
-        kmeans_insert_point(kp, 2, p);
-        
-        for(int i = 0; i < kp->num_points ; i++){
-            for(int j = 0 ; j < kp->dim ; j++){
-                printf("%lf ", kp->points[i].val[j]);
-            }
-            printf("\n");
+        double points_s[15][3] = {
+            { 1,  1,  0},
+            { 1,  2, -1},   
+            {-1,  1,  2},   
+            { 3,  2,  1},   
+            {-3, -2, -1},   
+
+            {20, 18, 16},   
+            {22, 21, 22},   
+            {19, 20, 18},   
+            {23, 19, 19},   
+            {21, 21, 17},   
+
+            {-20, -18, -19},
+            {-22, -21, -20},
+            {-19, -20, -21},
+            {-23, -19, -22},
+            {-21, -21, -18}
+        };
+
+        for(int i = 0 ; i < 15; i++){
+            memcpy(points[i], points_s[i], 3*sizeof(double));
         }
-        printf("clusters\n");
-        for(int i = 0; i < kp->num_clusters ; i++){
-            for(int j = 0 ; j < kp->dim ; j++){
-                printf("%lf ", kp->clusters[j].val);
-            }
-            printf("\n");
+
+        KMEANS_T *kp = NULL;
+
+        //array, dimensions, centroids
+        kp = kmeans_alloc( points, 15, 3, 3);
+        for(int i = 0 ; i<15 ; i++){
+            free(points[i]);
         }
+        free(points);
+
+        kmeans_apply(kp, KMEANS_KPP, 100);
         
-        kmeans_destroy_point(p);
+        printf("after processing:\n");
+        printf("centroid 0: %lf\t%lf\t%lf\n", kp->centroids[0].val[0], kp->centroids[0].val[1], kp->centroids[0].val[2]);
+        printf("centroid 1: %lf\t%lf\t%lf\n", kp->centroids[1].val[0], kp->centroids[1].val[1], kp->centroids[1].val[2]);
+        printf("centroid 2: %lf\t%lf\t%lf\n", kp->centroids[2].val[0], kp->centroids[2].val[1], kp->centroids[2].val[2]);
+
         kmeans_destroy(kp);
-        // some tests on the kmeans initialization
-        // I will delete this section later
-        /* int qtd_pontos = 15; */
-        /* int qtd_clusters = 3; */
-        /* int dim = 3; */
-
-        /* Kpoint centroids[3] = { */
-            /* {.val = {0,0,0}, .cluster = 0}, */
-            /* {.val = {0,0,0}, .cluster = 0}, */
-            /* {.val = {0,0,0}, .cluster = 0}, */
-        /* }; */
-
-        /* Kpoint points[] = { */
-
-            /* {.val = { 1,  1,  0},    .cluster = 0}, */
-            /* {.val = { 1,  2, -1},    .cluster = 0},  */
-            /* {.val = {-1,  1,  2},    .cluster = 0}, */
-            /* {.val = { 3,  2,  1},    .cluster = 0}, */
-            /* {.val = {-3, -2, -1},    .cluster = 0}, */
-
-            /* {.val = {20, 18, 16},    .cluster = 0}, */
-            /* {.val = {22, 21, 22},    .cluster = 0}, */
-            /* {.val = {19, 20, 18},    .cluster = 0}, */
-            /* {.val = {23, 19, 19},    .cluster = 0}, */
-            /* {.val = {21, 21, 17},    .cluster = 0}, */
-
-            /* {.val = {-20, -18, -19}, .cluster = 0}, */
-            /* {.val = {-22, -21, -20}, .cluster = 0}, */
-            /* {.val = {-19, -20, -21}, .cluster = 0}, */
-            /* {.val = {-23, -19, -22}, .cluster = 0}, */
-            /* {.val = {-21, -21, -18}, .cluster = 0} */
-
-        /* }; */
-
-
-        /* kmeans_apply(points, qtd_pontos, centroids, qtd_clusters, KMEANS_KPP, 3); */
-
-        /* printf("centroid 1: %lf\t%lf\t%lf\n", centroids[0].val[0], centroids[0].val[1], centroids[0].val[2]); */
-        /* printf("centroid 2: %lf\t%lf\t%lf\n", centroids[1].val[0], centroids[1].val[1], centroids[1].val[2]); */
-        /* printf("centroid 3: %lf\t%lf\t%lf\n", centroids[2].val[0], centroids[2].val[1], centroids[2].val[2]); */
-        
     }
 
     if(cmd_args.show_version){

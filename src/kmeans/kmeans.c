@@ -16,38 +16,39 @@ void kmeans_destroy_point(Kpoint* pt){
     free(pt);
 }
 
-KMEANS_T* kmeans_alloc(unsigned int num_points, unsigned int num_clusters, unsigned int dim){
+KMEANS_T* kmeans_alloc(double** points, unsigned int num_points, unsigned int dim, unsigned int num_clusters){
 
     KMEANS_T *kp = NULL;
-    
+
     kp = malloc(sizeof(KMEANS_T));
+    if(kp == NULL) return NULL;
 
     kp->num_clusters = num_clusters;
     kp->num_points   = num_points;
     kp->dim          = dim;
     
-    // allocate arrays for points and clusters
-    kp->points = malloc(num_points * sizeof(Kpoint));
-    kp->clusters = malloc(num_clusters * sizeof(Kpoint));
-    
-    // allocate the dimensions for each point and cluster
-    for(int i = 0 ; i < num_points ; i++){
-        kp->points[i].val = calloc(dim, sizeof(double));
+    /* allocate array for points and clusters */
+    kp->points = malloc(num_points*sizeof(Kpoint));
+    kp->centroids = malloc(num_clusters * sizeof(Kpoint));
+
+    for(int i = 0; i < num_points; i++){
+        kp->points[i].val = malloc(dim * sizeof(double));
+        memcpy(kp->points[i].val, points[i], dim*sizeof(double));
         kp->points[i].dim = dim;
         kp->points[i].cluster = 0;
     }
 
     for(int i = 0 ; i < num_clusters ; i++){
-        kp->clusters[i].val = calloc(dim, sizeof(double));
-        kp->clusters[i].dim = dim;
-        kp->clusters[i].cluster = i;
+        kp->centroids[i].val = calloc(dim, sizeof(double));
+        kp->centroids[i].dim = dim;
+        kp->centroids[i].cluster = i;
     }
 
     return kp;
 }
 
 void kmeans_destroy(KMEANS_T* kp){
-   
+
    if(kp == NULL) return;
 
    // free points values
@@ -60,11 +61,11 @@ void kmeans_destroy(KMEANS_T* kp){
 
    //free cluster values
    for(int i = 0; i < kp->num_clusters ; i++){
-       free(kp->clusters[i].val);
-   } 
+       free(kp->centroids[i].val);
+   }
 
    // free clusters array
-   free(kp->clusters);
+   free(kp->centroids);
 
    free(kp);
 }
@@ -82,7 +83,6 @@ unsigned int kmeans_insert_point(KMEANS_T* kp,
     kp->points[index].cluster = pt->cluster;
     kp->points[index].dim = pt->dim;
     memcpy(kp->points[index].val, pt->val, pt->dim  * sizeof(double));
-    /* kp->points[index] = pt; */
     return KMEANS_OK;
 }
 
@@ -138,11 +138,14 @@ static unsigned int kmeans_nearest_centroid(Kpoint *point,
 static void kmeans_init_random( Kpoint *points,
                                 unsigned int num_points,
                                 Kpoint *centroids,
-                                unsigned int num_clusters)
+                                unsigned int num_clusters,
+                                unsigned int dim)
 {
-
+    
+    unsigned int random_index = 0;
     for(int i = 0 ; i < num_clusters ; i++){
-        centroids[i] = points[ rand() % num_points ];
+        random_index = rand()%num_points; 
+        memcpy(centroids[i].val, points[random_index].val, dim*sizeof(double) );
     }
 }
 
@@ -165,7 +168,8 @@ static void kmeans_init_kpp( Kpoint *points,
     }
 
 	// the fist cluster is picked at random
-	centroids[0] = points[ rand() % num_points ];
+	/* centroids[0] = points[ rand() % num_points ]; */
+	memcpy(centroids[0].val, points[ rand() % num_points ].val, dim*sizeof(double));
  
 	// select the other clusters
 	for (int cluster_index = 1; cluster_index < num_clusters; cluster_index++) {
@@ -186,7 +190,8 @@ static void kmeans_init_kpp( Kpoint *points,
 		for (int i = 0; i < num_points; i++ ) {
 			sum -= distances[i];
 			if ( sum <= 0) {
-				centroids[cluster_index] = points[i];
+				/* centroids[cluster_index] = points[i]; */
+				memcpy(centroids[cluster_index].val, points[i].val, dim*sizeof(double));
 				break;
 			}
 		}
@@ -202,21 +207,27 @@ static void kmeans_init_kpp( Kpoint *points,
 	return;
 }
 
-static int kmeans_init( Kpoint *points,
-                 unsigned int num_points,
-                 Kpoint *centroids,
-                 unsigned int num_clusters,
-                 KMEANS_INIT_T method,
-                 unsigned int dim)
+/* static int kmeans_init( Kpoint *points, */
+                 /* unsigned int num_points, */
+                 /* Kpoint *centroids, */
+                 /* unsigned int num_clusters, */
+                 /* KMEANS_INIT_T method, */
+                 /* unsigned int dim) */
+static int kmeans_init(
+            KMEANS_T *kp,
+            KMEANS_INIT_T method
+            )
 {
     
     srand(time(NULL));
     switch (method){
         case KMEANS_RANDOM:
-            kmeans_init_random(points, num_points, centroids, num_clusters);
+            /* kmeans_init_random(points, num_points, centroids, num_clusters); */
+            kmeans_init_random(kp->points, kp->num_points, kp->centroids, kp->num_clusters, kp->dim);
             break;
         case KMEANS_KPP: 
-            kmeans_init_kpp(points, num_points, centroids, num_clusters, dim);
+            /* kmeans_init_kpp(points, num_points, centroids, num_clusters, dim); */
+            kmeans_init_kpp(kp->points, kp->num_points, kp->centroids, kp->num_clusters, kp->dim);
             break;
         case KMEANS_CUSTOM:
             // the user has to initialize the centroids with a custom method
@@ -230,63 +241,62 @@ static int kmeans_init( Kpoint *points,
 }
 
 void kmeans_apply(
-                  Kpoint *points,
-                  unsigned int num_points,
-                  Kpoint *centroids,
-                  unsigned int num_clusters,
+                  KMEANS_T *kp,
                   KMEANS_INIT_T init_method,
-                  unsigned int dim
+                  unsigned int max_iterations
                   )
 {
+    if(kp==NULL) return;
     
     unsigned int changes = 0;
-    unsigned int max_iterations = 100;
+    /* unsigned int max_iterations = 100; */
     //number of points for each cluster
-    unsigned int *cluster_size = NULL;
+    unsigned int *clusters_counter = NULL;
     unsigned int cluster_index = 0;
 
-    cluster_size = malloc(num_clusters*sizeof(unsigned int));
-    if(cluster_size == NULL){
+    clusters_counter = malloc((kp->num_clusters)*sizeof(unsigned int));
+    if(clusters_counter == NULL){
         fprintf(stderr, "Error in allocating memory\n");
         exit(EXIT_FAILURE);
     }
 
-    kmeans_init(points, num_points, centroids, num_clusters, init_method, dim);
-    
+    /* kmeans_init(points, num_points, centroids, num_clusters, init_method, dim); */
+    kmeans_init(kp, init_method);
+
     do{
-        memset(cluster_size, 0, dim*sizeof(unsigned int));
+        memset(clusters_counter, 0, (kp->num_clusters)*sizeof(unsigned int));
 
         // assign all the points to the closest cluster centroid
         changes = 0;
-        for (int i = 0; i < num_points; i++){
-            cluster_index = kmeans_nearest_centroid(&points[i], centroids, num_clusters, dim);
-            if(points[i].cluster != cluster_index){
+        for (int i = 0; i < kp->num_points; i++){
+            cluster_index = kmeans_nearest_centroid(&(kp->points[i]), kp->centroids, kp->num_clusters, kp->dim);
+            if(kp->points[i].cluster != cluster_index){
                 changes++;
             }
-            points[i].cluster = cluster_index;
-            cluster_size[points[i].cluster]++;
+            kp->points[i].cluster = cluster_index;
+            clusters_counter[kp->points[i].cluster]++;
         }
 
         // zero the centroids
-        for (int i = 0 ; i < num_clusters ; i++){
-            memset(centroids[i].val, 0, dim*sizeof(double));
+        for (int i = 0 ; i < kp->num_clusters ; i++){
+            memset(kp->centroids[i].val, 0, (kp->dim)*sizeof(double));
         }
 
-        // recompute the centroids of newly formed clusters
-        for (int i = 0 ; i < num_points ; i++){
-            for(int j = 0 ; j < dim ; j++){
-                centroids[points[i].cluster].val[j] += points[i].val[j];
+        /* recompute the centroids of newly formed clusters */
+        for (int i = 0 ; i < kp->num_points ; i++){
+            for(int j = 0 ; j < kp->dim ; j++){
+                kp->centroids[kp->points[i].cluster].val[j] += kp->points[i].val[j];
             }
         }
-        for (int i = 0 ; i < num_clusters ; i++){
-            for(int j = 0 ; j < dim ; j++){
-                centroids[i].val[j] /= cluster_size[i];
+        for (int i = 0 ; i < kp->num_clusters ; i++){
+            for(int j = 0 ; j < kp->dim ; j++){
+                kp->centroids[i].val[j] /= clusters_counter[i];
             }
         }
-
+    
     } while(changes > 0 && max_iterations--);
 
-    free(cluster_size);
+    free(clusters_counter);
     return;
 }
 

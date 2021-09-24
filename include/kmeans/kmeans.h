@@ -31,7 +31,7 @@ typedef struct {
     unsigned int num_clusters;
     unsigned int num_points; 
     Kpoint* points;
-    Kpoint* clusters;
+    Kpoint* centroids;
 } KMEANS_T;
 
 
@@ -53,14 +53,18 @@ typedef enum {
 Kpoint* kmeans_create_point(double* val, size_t size);
 
 // destroy an allocated point
-void kmeans_destroy_point(Kpoint* pt);
+// void kmeans_destroy_point(Kpoint* pt);
 
 /* Creates an object of type KMEANS_T which stores the necessary data to apply kmeans.
  * The parameters are the number of points num_points, the number of clusters num_clusters
  * and the dimension of the points dim.*/
-KMEANS_T* kmeans_alloc(unsigned int num_points,
-                       unsigned int num_clusters,
-                       unsigned int dim);
+// KMEANS_T* kmeans_alloc(unsigned int num_points,
+                       // unsigned int num_clusters,
+                       // unsigned int dim);
+KMEANS_T* kmeans_alloc(double ** points,
+                       unsigned int num_points,
+                       unsigned int dim,
+                       unsigned int num_clusters);
 
 /* destroys the data allocated by kmeans_alloc */
 void kmeans_destroy(KMEANS_T* kp);
@@ -105,26 +109,14 @@ simple but not recommended because it doesn't always converge to good results */
 static void kmeans_init_random(Kpoint *points,
                                unsigned int num_points,
                                Kpoint *centroids,
-                               unsigned int num_clusters);
+                               unsigned int num_clusters,
+                               unsigned int dim
+                               );
 
 /* initialize centroids with a custom method. */
-static int kmeans_init(
-            Kpoint *points,
-            unsigned int num_points,
-            Kpoint *centroids,
-            unsigned int num_clusters,
-            KMEANS_INIT_T method,
-            unsigned int dim
-        );
+static int kmeans_init(KMEANS_T *kp, KMEANS_INIT_T method);
 
 /* Apply the kmeans clustering */
-void kmeans_apply(
-                Kpoint *points,
-                unsigned int num_points,
-                Kpoint *centroids,
-                unsigned int num_clusters,
-                KMEANS_INIT_T init_method,
-                unsigned int dim
-            );
+void kmeans_apply(KMEANS_T *kp, KMEANS_INIT_T init_method, unsigned int max_iterations );
 
 #endif /* KMEANS_H */
